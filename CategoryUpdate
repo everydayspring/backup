@@ -1,0 +1,65 @@
+static void CategoryUpdate(IWebDriver driver, string mallProductNo)
+{
+    string productListUrl = $"https://service.shopby.co.kr/product/edit?globalProductNo=0&mallProductNo={mallProductNo}";
+    driver.Navigate().GoToUrl(productListUrl);
+
+    var wait = new WebDriverWait(driver, TimeSpan.FromSeconds(15));
+    Thread.Sleep(7000);
+
+    wait.Until(d =>
+    {
+        try
+        {
+            var iframe = d.FindElement(By.ClassName("remote"));
+            d.SwitchTo().Frame(iframe);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    });
+
+
+    wait.Until(driver => driver.FindElements(By.CssSelector("label.checkbox")).Count > 0);
+
+    var labels = driver.FindElements(By.CssSelector("label.checkbox"));
+
+    // OUTER 7810 
+    // TOP 7811
+    // BOTTOM 7812
+    // DRESS 7813
+    // ACCESSORY 7814
+    var dressCheckbox = wait.Until(d => d.FindElement(By.CssSelector("input[type='checkbox'][value='7812']")));
+    if (!dressCheckbox.Selected)
+    {
+        ((IJavaScriptExecutor)driver).ExecuteScript("arguments[0].click();", dressCheckbox);
+    }
+    Thread.Sleep(3000);
+
+    var etcCheckbox = wait.Until(d => d.FindElement(By.CssSelector("input[type='checkbox'][value='7849']")));
+    if (etcCheckbox.Selected)
+    {
+        ((IJavaScriptExecutor)driver).ExecuteScript("arguments[0].click();", etcCheckbox);
+    }
+    Thread.Sleep(3000);
+
+    var saveButton = wait.Until(d =>
+    d.FindElement(By.XPath("//button[@type='submit' and normalize-space(text())='저장']"))
+    );
+    ((IJavaScriptExecutor)driver).ExecuteScript("arguments[0].click();", saveButton);
+    Thread.Sleep(3000);
+
+    try
+    {
+        IAlert alert = driver.SwitchTo().Alert();
+        alert.Accept();
+        Thread.Sleep(1000);
+    }
+    catch (NoAlertPresentException)
+    {
+        Console.WriteLine("알림창 없음");
+    }
+
+    driver.SwitchTo().DefaultContent();
+}
